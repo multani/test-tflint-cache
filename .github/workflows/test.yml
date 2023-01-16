@@ -1,0 +1,49 @@
+# This is a template workflow that must be called by another workflow to work.
+
+name: Lint
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  tflint:
+    name: TFLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            $HOME/.tflint.d/plugins
+          key: ${{ runner.os }}-plugins
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.3.7
+
+      - name: Terraform init
+        run: terraform init -backend=false
+
+      - name: Setup tflint
+        uses: terraform-linters/setup-tflint@v3
+        with:
+          # Authenticated queries increase the rate limits
+          github_token: ${{ github.token }}
+          tflint_version: v0.44.1
+
+      - name: tflint version
+        run: tflint --version
+
+      - name: tflint
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tflint --init
+          tflint --format compact --module
+
+      - run: find
