@@ -46,4 +46,4 @@ jobs:
           tflint --init
           tflint --format compact --module
 
-      - run: find
+      - run: find $HOME
